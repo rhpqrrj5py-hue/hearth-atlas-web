@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Fraunces, Inter } from "next/font/google";
+import QRCode from "qrcode";
 
 import { supabase } from "@/lib/supabase";
 import type {
@@ -18,6 +19,10 @@ import type {
 
 // --- Brand ------------------------------------------------------------------
 const HOME_URL = "https://hearthatlas.lodestar-studio.com";
+// Store links don't exist yet — point at the home page so the buttons/QRs still lead
+// somewhere valid. Replace with the real store URLs at launch.
+const APP_STORE_URL = "https://hearthatlas.lodestar-studio.com"; // TODO: replace with real App Store link at launch
+const PLAY_STORE_URL = "https://hearthatlas.lodestar-studio.com"; // TODO: replace with real Google Play link at launch
 // cream #FFF8F1 · orange #F28705 · blue #5171FF · purple #2F0168 · teal #0EA5A4
 
 // Warm serif for headings, clean sans for body.
@@ -310,7 +315,79 @@ function LogoHeader() {
   );
 }
 
-function FooterCTA() {
+/** A QR code as an inline SVG string (server-side, no client JS). Purple modules on
+ *  a transparent background so it sits cleanly on the white card. */
+async function qrSvg(url: string): Promise<string> {
+  return QRCode.toString(url, {
+    type: "svg",
+    margin: 0,
+    errorCorrectionLevel: "M",
+    color: { dark: "#2F0168", light: "#00000000" },
+  });
+}
+
+const AppleIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden>
+    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.51 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+  </svg>
+);
+
+const PlayIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden>
+    <path d="M3 2.5v19a1 1 0 0 0 1.5.87l16.5-9.5a1 1 0 0 0 0-1.74L4.5 1.63A1 1 0 0 0 3 2.5z" />
+  </svg>
+);
+
+function StoreBadge({
+  href,
+  icon,
+  top,
+  main,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  top: string;
+  main: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-3 rounded-xl bg-[#2F0168] px-5 py-2.5 text-white shadow-sm transition-opacity hover:opacity-90"
+    >
+      {icon}
+      <span className="flex flex-col text-left leading-tight">
+        <span className="text-[10px] uppercase tracking-wide text-white/70">
+          {top}
+        </span>
+        <span className={`${fraunces.className} text-base font-semibold`}>
+          {main}
+        </span>
+      </span>
+    </a>
+  );
+}
+
+function QrCode({ svg, caption }: { svg: string; caption: string }) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className="h-[120px] w-[120px] rounded-lg bg-white p-2 shadow-sm [&_svg]:h-full [&_svg]:w-full"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+      <span className="text-xs font-medium text-[#5C544E]">{caption}</span>
+    </div>
+  );
+}
+
+async function FooterCTA() {
+  const [appStoreQr, playStoreQr] = await Promise.all([
+    qrSvg(APP_STORE_URL),
+    qrSvg(PLAY_STORE_URL),
+  ]);
+
   return (
     <footer className="space-y-6 pb-12 pt-4 text-center">
       <div className="rounded-2xl bg-gradient-to-b from-[#F28705]/[0.08] to-[#F28705]/[0.03] px-6 py-9">
@@ -322,15 +399,31 @@ function FooterCTA() {
         <p className="mx-auto mt-2 max-w-sm text-[15px] leading-relaxed text-[#5C544E]">
           Des recettes du monde entier, un guide de cuisine dans votre poche.
         </p>
-        <a
-          href={HOME_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-[#F28705] px-7 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-        >
-          Découvrir l’application
-        </a>
-        {/* QR codes + store buttons come in the next step. */}
+
+        {/* Store badges — stack on narrow screens, side by side on wider ones. */}
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <StoreBadge
+            href={APP_STORE_URL}
+            icon={<AppleIcon />}
+            top="Télécharger sur l’"
+            main="App Store"
+          />
+          <StoreBadge
+            href={PLAY_STORE_URL}
+            icon={<PlayIcon />}
+            top="Disponible sur"
+            main="Google Play"
+          />
+        </div>
+
+        {/* QR codes to scan-and-install. */}
+        <p className="mt-8 text-sm font-medium text-[#5C544E]">
+          Scannez pour installer Hearth Atlas
+        </p>
+        <div className="mt-4 flex flex-wrap items-start justify-center gap-6">
+          <QrCode svg={appStoreQr} caption="App Store" />
+          <QrCode svg={playStoreQr} caption="Google Play" />
+        </div>
       </div>
       <p className="text-xs text-[#B3A99F]">Partagé via Hearth Atlas</p>
     </footer>
