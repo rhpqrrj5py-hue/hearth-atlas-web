@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Fraunces, Inter } from "next/font/google";
 import QRCode from "qrcode";
@@ -456,6 +457,71 @@ function NotFound() {
       </main>
     </div>
   );
+}
+
+// --- Social preview metadata ------------------------------------------------
+// Runs on the server before render; a second fetch of the same row is fine (Next
+// de-dupes it with the page's fetch when possible). Builds the rich OG/Twitter card
+// (dish photo + title + French description) shown when the link is pasted into
+// WhatsApp, Messages, X, etc. The image_url column is already an absolute public URL.
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const { data, error } = await supabase
+    .from("shared_recipes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return { title: "Recette introuvable · Hearth Atlas" };
+  }
+
+  const row = data as SharedRecipeRow;
+  const payload = row.payload;
+  const first = payload?.recipes?.[0];
+
+  const recipeTitle = (
+    payload?.title ||
+    row.title ||
+    first?.title ||
+    "Recette"
+  ).trim();
+  const fullTitle = `${recipeTitle} · Hearth Atlas`;
+
+  const context = [first?.cuisine?.trim(), first?.course?.trim()]
+    .filter(Boolean)
+    .join(" · ");
+  const description = context
+    ? `${context} — une recette à cuisiner sur Hearth Atlas`
+    : "Une recette à cuisiner sur Hearth Atlas";
+
+  const image = row.image_url || first?.image || undefined;
+  const lang = payload?.lang;
+
+  return {
+    title: fullTitle,
+    description,
+    openGraph: {
+      title: fullTitle,
+      description,
+      type: "article",
+      siteName: "Hearth Atlas",
+      ...(lang ? { locale: lang } : {}),
+      ...(image ? { images: [{ url: image, alt: recipeTitle }] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
 }
 
 // --- Page -------------------------------------------------------------------
