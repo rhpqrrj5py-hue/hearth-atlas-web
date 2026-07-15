@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Fraunces, Inter } from "next/font/google";
 import QRCode from "qrcode";
 
+import { fill, getChrome, isRTL, resolveLang, type Chrome } from "@/lib/chrome-i18n";
 import { supabase } from "@/lib/supabase";
 import type {
   Ingredient,
@@ -16,7 +17,9 @@ import type {
 // Public shared-recipe page. Server Component: fetches the row on the server and
 // renders a v2 payload that is already fully localized (payload.lang) — title, steps,
 // ingredient/equipment names, cuisine, course, and per-step stepItems. This page only
-// presents those strings; no glossary, no i18n, no slug resolution. French labels.
+// presents those strings; no glossary, no slug resolution. The page's OWN chrome
+// (headings, meta pills, CTA, not-found) is localized from payload.lang via
+// lib/chrome-i18n, falling back to English for languages not yet in that table.
 
 // --- Brand ------------------------------------------------------------------
 const HOME_URL = "https://hearthatlas.lodestar-studio.com";
@@ -150,7 +153,7 @@ function Steps({
   );
 }
 
-function PairingCard({ pairing }: { pairing: Pairing }) {
+function PairingCard({ pairing, chrome }: { pairing: Pairing; chrome: Chrome }) {
   const support = [pairing.style, pairing.origin]
     .filter((x) => x && x !== "—")
     .join(" · ");
@@ -163,7 +166,7 @@ function PairingCard({ pairing }: { pairing: Pairing }) {
           {pairing.name}
         </h4>
         <span className="shrink-0 rounded-full bg-[#0EA5A4]/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#0B7E7D]">
-          {pairing.alcoholic ? "Alcoolisé" : "Sans alcool"}
+          {pairing.alcoholic ? chrome.alcoholic : chrome.nonAlcoholic}
         </span>
       </div>
       {support && <p className="mt-1 text-sm text-[#5C544E]">{support}</p>}
@@ -183,11 +186,13 @@ function RecipeBlock({
   pairings,
   stepItems,
   isMenu,
+  chrome,
 }: {
   recipe: Recipe;
   pairings?: Pairing[];
   stepItems?: SharedStepItems[];
   isMenu: boolean;
+  chrome: Chrome;
 }) {
   return (
     <article className="space-y-8">
@@ -218,11 +223,13 @@ function RecipeBlock({
               <Pill tint="blue">{recipe.course}</Pill>
             )}
             {recipe.totalTimeMinutes > 0 && (
-              <Pill tint="purple">{recipe.totalTimeMinutes} min</Pill>
+              <Pill tint="purple">
+                {recipe.totalTimeMinutes} {chrome.minutesSuffix}
+              </Pill>
             )}
             {recipe.baseServings > 0 && (
               <Pill tint="teal">
-                {recipe.baseServings} pers.
+                {recipe.baseServings} {chrome.servesShort}
               </Pill>
             )}
           </div>
@@ -233,10 +240,9 @@ function RecipeBlock({
       {recipe.ingredients?.length > 0 && (
         <Card className="space-y-4">
           <div className="flex items-baseline justify-between gap-3">
-            <SectionHeading>Ingrédients</SectionHeading>
+            <SectionHeading>{chrome.ingredients}</SectionHeading>
             <span className="shrink-0 text-sm text-[#8A7F76]">
-              Pour {recipe.baseServings} personne
-              {recipe.baseServings > 1 ? "s" : ""}
+              {fill(chrome.servesLine, { n: recipe.baseServings })}
             </span>
           </div>
           <IngredientRows ingredients={recipe.ingredients} />
@@ -246,7 +252,7 @@ function RecipeBlock({
       {/* Equipment */}
       {recipe.equipment?.length > 0 && (
         <div className="space-y-3">
-          <SectionHeading>Matériel</SectionHeading>
+          <SectionHeading>{chrome.equipment}</SectionHeading>
           <div className="flex flex-wrap gap-2">
             {recipe.equipment.map((e, i) => (
               <span
@@ -263,7 +269,7 @@ function RecipeBlock({
       {/* Preparation */}
       {recipe.steps?.length > 0 && (
         <Card className="space-y-5">
-          <SectionHeading>Préparation</SectionHeading>
+          <SectionHeading>{chrome.preparation}</SectionHeading>
           <Steps steps={recipe.steps} stepItems={stepItems} />
         </Card>
       )}
@@ -271,10 +277,10 @@ function RecipeBlock({
       {/* Sommelier */}
       {pairings && pairings.length > 0 && (
         <Card className="space-y-4 border-[#0EA5A4]/20">
-          <SectionHeading>Accords</SectionHeading>
+          <SectionHeading>{chrome.pairings}</SectionHeading>
           <div className="space-y-3">
             {pairings.map((p, i) => (
-              <PairingCard key={i} pairing={p} />
+              <PairingCard key={i} pairing={p} chrome={chrome} />
             ))}
           </div>
         </Card>
@@ -383,7 +389,7 @@ function QrCode({ svg, caption }: { svg: string; caption: string }) {
   );
 }
 
-async function FooterCTA() {
+async function FooterCTA({ chrome }: { chrome: Chrome }) {
   const [appStoreQr, playStoreQr] = await Promise.all([
     qrSvg(APP_STORE_URL),
     qrSvg(PLAY_STORE_URL),
@@ -395,10 +401,10 @@ async function FooterCTA() {
         <h3
           className={`${fraunces.className} text-2xl font-semibold text-[#2F0168]`}
         >
-          Cuisinez le monde avec Hearth Atlas
+          {chrome.ctaHeading}
         </h3>
         <p className="mx-auto mt-2 max-w-sm text-[15px] leading-relaxed text-[#5C544E]">
-          Des recettes du monde entier, un guide de cuisine dans votre poche.
+          {chrome.ctaBody}
         </p>
 
         {/* Store badges — stack on narrow screens, side by side on wider ones. */}
@@ -406,32 +412,33 @@ async function FooterCTA() {
           <StoreBadge
             href={APP_STORE_URL}
             icon={<AppleIcon />}
-            top="Télécharger sur l’"
+            top={chrome.badgeAppStoreTop}
             main="App Store"
           />
           <StoreBadge
             href={PLAY_STORE_URL}
             icon={<PlayIcon />}
-            top="Disponible sur"
+            top={chrome.badgePlayTop}
             main="Google Play"
           />
         </div>
 
         {/* QR codes to scan-and-install. */}
         <p className="mt-8 text-sm font-medium text-[#5C544E]">
-          Scannez pour installer Hearth Atlas
+          {chrome.qrCaption}
         </p>
         <div className="mt-4 flex flex-wrap items-start justify-center gap-6">
           <QrCode svg={appStoreQr} caption="App Store" />
           <QrCode svg={playStoreQr} caption="Google Play" />
         </div>
       </div>
-      <p className="text-xs text-[#B3A99F]">Partagé via Hearth Atlas</p>
+      <p className="text-xs text-[#B3A99F]">{chrome.sharedVia}</p>
     </footer>
   );
 }
 
-function NotFound() {
+function NotFound({ lang = "en" }: { lang?: string }) {
+  const chrome = getChrome(lang);
   return (
     <div
       className={`${inter.className} flex min-h-screen flex-col bg-[#FFF8F1]`}
@@ -441,10 +448,10 @@ function NotFound() {
         <h1
           className={`${fraunces.className} text-3xl font-semibold text-[#2F0168]`}
         >
-          Recette introuvable
+          {chrome.notFoundTitle}
         </h1>
         <p className="mt-3 text-[#5C544E]">
-          Ce lien de partage n’existe pas ou a expiré.
+          {chrome.notFoundBody}
         </p>
         <a
           href={HOME_URL}
@@ -452,7 +459,7 @@ function NotFound() {
           rel="noopener noreferrer"
           className="mt-8 inline-flex items-center justify-center rounded-full bg-[#F28705] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
         >
-          Découvrir Hearth Atlas
+          {chrome.discoverCta}
         </a>
       </main>
     </div>
@@ -462,8 +469,9 @@ function NotFound() {
 // --- Social preview metadata ------------------------------------------------
 // Runs on the server before render; a second fetch of the same row is fine (Next
 // de-dupes it with the page's fetch when possible). Builds the rich OG/Twitter card
-// (dish photo + title + French description) shown when the link is pasted into
-// WhatsApp, Messages, X, etc. The image_url column is already an absolute public URL.
+// (dish photo + title + a description in the payload's language, English fallback)
+// shown when the link is pasted into WhatsApp, Messages, X, etc. The image_url
+// column is already an absolute public URL.
 
 export async function generateMetadata({
   params,
@@ -478,19 +486,23 @@ export async function generateMetadata({
     .eq("id", id)
     .single();
 
+  // No row at all — there is no payload, so no language to follow: English.
   if (error || !data) {
-    return { title: "Recette introuvable · Hearth Atlas" };
+    return { title: `${getChrome("en").notFoundTitle} · Hearth Atlas` };
   }
 
   const row = data as SharedRecipeRow;
   const payload = row.payload;
   const first = payload?.recipes?.[0];
 
+  const lang = resolveLang(payload?.lang);
+  const chrome = getChrome(lang);
+
   const recipeTitle = (
     payload?.title ||
     row.title ||
     first?.title ||
-    "Recette"
+    chrome.recipeFallback
   ).trim();
   const fullTitle = `${recipeTitle} · Hearth Atlas`;
 
@@ -498,11 +510,10 @@ export async function generateMetadata({
     .filter(Boolean)
     .join(" · ");
   const description = context
-    ? `${context} — une recette à cuisiner sur Hearth Atlas`
-    : "Une recette à cuisiner sur Hearth Atlas";
+    ? fill(chrome.ogDescription, { context })
+    : chrome.ogDescriptionNoContext;
 
   const image = row.image_url || first?.image || undefined;
-  const lang = payload?.lang;
 
   return {
     title: fullTitle,
@@ -512,7 +523,7 @@ export async function generateMetadata({
       description,
       type: "article",
       siteName: "Hearth Atlas",
-      ...(lang ? { locale: lang } : {}),
+      ...(payload?.lang ? { locale: lang } : {}),
       ...(image ? { images: [{ url: image, alt: recipeTitle }] } : {}),
     },
     twitter: {
@@ -544,13 +555,19 @@ export default async function SharedRecipePage({
   const row = data as SharedRecipeRow;
   const payload: SharedRecipePayload | undefined = row.payload;
   const recipes = payload?.recipes ?? [];
-  if (recipes.length === 0) return <NotFound />;
+  const lang = resolveLang(payload?.lang);
+  if (recipes.length === 0) return <NotFound lang={lang} />;
 
+  const chrome = getChrome(lang);
   const isMenu = payload.scope === "menu" || recipes.length > 1;
   const title = payload.title || row.title || recipes[0].title;
 
   return (
-    <div className={`${inter.className} min-h-screen bg-[#FFF8F1] text-[#2A2320]`}>
+    <div
+      lang={lang}
+      dir={isRTL(lang) ? "rtl" : "ltr"}
+      className={`${inter.className} min-h-screen bg-[#FFF8F1] text-[#2A2320]`}
+    >
       <div className="mx-auto w-full max-w-2xl px-5">
         <LogoHeader />
 
@@ -558,7 +575,7 @@ export default async function SharedRecipePage({
         {isMenu && (
           <div className="space-y-2 pb-8 pt-2 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#F28705]">
-              Menu
+              {chrome.menu}
             </p>
             <h1
               className={`${fraunces.className} text-4xl font-semibold leading-tight text-[#2F0168]`}
@@ -581,12 +598,13 @@ export default async function SharedRecipePage({
                 pairings={payload.pairings?.[recipe.id]}
                 stepItems={payload.stepItems?.[recipe.id]}
                 isMenu={isMenu}
+                chrome={chrome}
               />
             </div>
           ))}
         </main>
 
-        <FooterCTA />
+        <FooterCTA chrome={chrome} />
       </div>
     </div>
   );
