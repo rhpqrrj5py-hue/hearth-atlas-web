@@ -1,63 +1,107 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+import {
+  AppleIcon,
+  LogoHeader,
+  PlayIcon,
+  QrCode,
+  StoreBadge,
+  fraunces,
+  inter,
+  qrSvg,
+} from "@/components/brand";
+import { targetFor } from "@/lib/device";
+import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/stores";
+
+// Page d accueil publique. Deux roles en un :
+//
+//   - sur telephone, elle NE S AFFICHE PAS : l appareil est reconnu cote
+//     serveur et redirige vers sa boutique. Aucun HTML n est envoye, donc
+//     aucun scintillement — c est ce que la detection cote navigateur
+//     (navigator.userAgent) n aurait pas permis.
+//   - partout ailleurs — ordinateur, robot, appareil non reconnu — elle
+//     presente la landing avec les deux badges et les deux QR codes.
+//
+// Composant SERVEUR. La lecture de headers() rend la route dynamique : elle
+// n est plus prerendue ni mise en cache par le CDN, ce qui est la condition
+// meme d une redirection dependant de l appareil.
+//
+// L habillage (logo, badges, QR, couleurs, polices) vient de
+// components/brand.tsx, repris a l identique de app/r/[id]/page.tsx.
+
+// app/layout.tsx porte encore les metadonnees du gabarit (« Create Next App ») ;
+// elles ne sont pas modifiees ici, ce lot ne touche qu a la racine. Celles-ci
+// les remplacent pour cette page.
+export const metadata: Metadata = {
+  title: "Hearth Atlas — Crave it. Cook it. Learn the world.",
+  description:
+    "Recipes from around the world, a cooking guide in your pocket. Download Hearth Atlas on the App Store or Google Play.",
+  openGraph: {
+    title: "Hearth Atlas",
+    description:
+      "Recipes from around the world, a cooking guide in your pocket.",
+    type: "website",
+  },
+};
+
+export default async function Home() {
+  const target = targetFor((await headers()).get("user-agent"));
+
+  // redirect() interrompt le rendu en levant : appele ici, hors de tout
+  // try/catch, il produit une redirection HTTP 307 (temporaire — un 308 serait
+  // mis en cache par le navigateur et figerait la destination par appareil).
+  if (target === "ios") redirect(APP_STORE_URL);
+  if (target === "android") redirect(PLAY_STORE_URL);
+
+  // Ordinateur, robot, appareil non reconnu : la landing.
+  const [appStoreQr, playStoreQr] = await Promise.all([
+    qrSvg(APP_STORE_URL),
+    qrSvg(PLAY_STORE_URL),
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div
+      className={`${inter.className} flex min-h-screen flex-col bg-[#FFF8F1]`}
+    >
+      <LogoHeader />
+
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 pb-12">
+        <div className="rounded-2xl bg-gradient-to-b from-[#F28705]/[0.08] to-[#F28705]/[0.03] px-6 py-9 text-center">
+          <h1
+            className={`${fraunces.className} text-2xl font-semibold text-[#2F0168]`}
+          >
+            Cook the world with Hearth Atlas
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mx-auto mt-2 max-w-sm text-[15px] leading-relaxed text-[#5C544E]">
+            Recipes from around the world, a cooking guide in your pocket.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+          {/* Store badges — stack on narrow screens, side by side on wider ones. */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <StoreBadge
+              href={APP_STORE_URL}
+              icon={<AppleIcon />}
+              top="Download on the"
+              main="App Store"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <StoreBadge
+              href={PLAY_STORE_URL}
+              icon={<PlayIcon />}
+              top="Get it on"
+              main="Google Play"
+            />
+          </div>
+
+          {/* QR codes to scan-and-install. */}
+          <p className="mt-8 text-sm font-medium text-[#5C544E]">
+            Scan to install Hearth Atlas
+          </p>
+          <div className="mt-4 flex flex-wrap items-start justify-center gap-6">
+            <QrCode svg={appStoreQr} caption="App Store" />
+            <QrCode svg={playStoreQr} caption="Google Play" />
+          </div>
         </div>
       </main>
     </div>
