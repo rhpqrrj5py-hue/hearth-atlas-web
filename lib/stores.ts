@@ -1,11 +1,13 @@
 // Liens publics du produit, en UN SEUL endroit.
 //
-// app/r/[id]/page.tsx porte encore ses propres constantes APP_STORE_URL /
-// PLAY_STORE_URL, marquees TODO et pointant sur la page d accueil (les liens
-// stores n existaient pas quand cette page a ete ecrite). Elles sont
-// volontairement laissees intactes ici : ce lot ne touche pas a la page de
-// partage. A faire converger vers ce module dans un lot suivant, sinon les
-// badges et QR de la page de partage continueront de renvoyer vers l accueil.
+// Utilises par les DEUX pages publiques :
+//   - app/page.tsx        cibles de la redirection selon l appareil, plus les
+//                         badges et les QR de la landing ;
+//   - app/r/[id]/page.tsx badges et QR du bas de la page de partage.
+//
+// Cette derniere portait ses propres constantes, marquees TODO et pointant sur
+// la page d accueil faute de liens stores a l epoque ; elles ont ete supprimees
+// au profit de ce module. Une fiche qui change ne se corrige donc qu ici.
 
 /** Page d accueil publique. */
 export const HOME_URL = "https://hearthatlas.lodestar-studio.com";

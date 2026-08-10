@@ -4,6 +4,7 @@ import { Fraunces, Inter } from "next/font/google";
 import QRCode from "qrcode";
 
 import { fill, getChrome, isRTL, resolveLang, type Chrome } from "@/lib/chrome-i18n";
+import { APP_STORE_URL, PLAY_STORE_URL } from "@/lib/stores";
 import { supabase } from "@/lib/supabase";
 import type {
   Ingredient,
@@ -23,10 +24,10 @@ import type {
 
 // --- Brand ------------------------------------------------------------------
 const HOME_URL = "https://hearthatlas.lodestar-studio.com";
-// Store links don't exist yet — point at the home page so the buttons/QRs still lead
-// somewhere valid. Replace with the real store URLs at launch.
-const APP_STORE_URL = "https://hearthatlas.lodestar-studio.com"; // TODO: replace with real App Store link at launch
-const PLAY_STORE_URL = "https://hearthatlas.lodestar-studio.com"; // TODO: replace with real Google Play link at launch
+// APP_STORE_URL / PLAY_STORE_URL viennent desormais de lib/stores.ts, partages
+// avec la page d accueil. Ils pointaient ici sur la page d accueil, faute de
+// liens stores au moment de l ecriture : un visiteur sur ordinateur qui cliquait
+// « App Store » atterrissait sur la landing au lieu de la boutique.
 // cream #FFF8F1 · orange #F28705 · blue #5171FF · purple #2F0168 · teal #0EA5A4
 
 // Warm serif for headings, clean sans for body.
