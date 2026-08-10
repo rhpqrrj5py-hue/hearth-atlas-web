@@ -482,9 +482,7 @@ export async function generateMetadata({
   const { id } = await params;
 
   const { data, error } = await supabase
-    .from("shared_recipes")
-    .select("*")
-    .eq("id", id)
+    .rpc("get_shared_recipe", { p_id: id })
     .single();
 
   // No row at all — there is no payload, so no language to follow: English.
@@ -546,9 +544,7 @@ export default async function SharedRecipePage({
   const { id } = await params;
 
   const { data, error } = await supabase
-    .from("shared_recipes")
-    .select("*")
-    .eq("id", id)
+    .rpc("get_shared_recipe", { p_id: id })
     .single();
 
   if (error || !data) return <NotFound />;

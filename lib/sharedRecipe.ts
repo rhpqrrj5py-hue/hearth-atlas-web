@@ -75,6 +75,5 @@ export interface SharedRecipeRow {
   title: string | null;
   image_url: string | null;
   scope: "dish" | "menu";
-  created_by: string;
   created_at?: string;
 }
