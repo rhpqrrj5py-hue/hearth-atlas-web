@@ -62,6 +62,8 @@ export interface Chrome {
   /** Interpolates {context} (e.g. "Germany · Main course"). */
   ogDescription: string;
   ogDescriptionNoContext: string;
+  /** ACC-3 — health message under the sommelier pairings, word for word as in the app (ai.alcoholWarning). */
+  alcoholWarning: string;
 }
 
 const en: Chrome = {
@@ -87,6 +89,7 @@ const en: Chrome = {
   recipeFallback: "Recipe",
   ogDescription: "{context} — a recipe to cook on Hearth Atlas",
   ogDescriptionNoContext: "A recipe to cook on Hearth Atlas",
+  alcoholWarning: "Alcohol abuse is dangerous for your health. Drink responsibly.",
 };
 
 const fr: Chrome = {
@@ -112,6 +115,7 @@ const fr: Chrome = {
   recipeFallback: "Recette",
   ogDescription: "{context} — une recette à cuisiner sur Hearth Atlas",
   ogDescriptionNoContext: "Une recette à cuisiner sur Hearth Atlas",
+  alcoholWarning: "L'abus d'alcool est dangereux pour la santé. À consommer avec modération.",
 };
 
 const de: Chrome = {
@@ -137,6 +141,7 @@ const de: Chrome = {
   recipeFallback: "Rezept",
   ogDescription: "{context} — ein Rezept zum Nachkochen auf Hearth Atlas",
   ogDescriptionNoContext: "Ein Rezept zum Nachkochen auf Hearth Atlas",
+  alcoholWarning: "Übermäßiger Alkoholkonsum ist gesundheitsschädlich. Genieße Alkohol in Maßen.",
 };
 
 const es: Chrome = {
@@ -162,6 +167,7 @@ const es: Chrome = {
   recipeFallback: "Receta",
   ogDescription: "{context} — una receta para cocinar en Hearth Atlas",
   ogDescriptionNoContext: "Una receta para cocinar en Hearth Atlas",
+  alcoholWarning: "El abuso de alcohol es peligroso para la salud. Consúmelo con moderación.",
 };
 
 const it: Chrome = {
@@ -187,6 +193,7 @@ const it: Chrome = {
   recipeFallback: "Ricetta",
   ogDescription: "{context} — una ricetta da cucinare su Hearth Atlas",
   ogDescriptionNoContext: "Una ricetta da cucinare su Hearth Atlas",
+  alcoholWarning: "L'abuso di alcol è pericoloso per la salute. Bevi con moderazione.",
 };
 
 const pt: Chrome = {
@@ -212,6 +219,7 @@ const pt: Chrome = {
   recipeFallback: "Receita",
   ogDescription: "{context} — uma receita para cozinhar no Hearth Atlas",
   ogDescriptionNoContext: "Uma receita para cozinhar no Hearth Atlas",
+  alcoholWarning: "O consumo abusivo de álcool é perigoso para a saúde. Beba com moderação.",
 };
 
 const zh: Chrome = {
@@ -237,6 +245,7 @@ const zh: Chrome = {
   recipeFallback: "食谱",
   ogDescription: "{context} — 一道可在 Hearth Atlas 上烹饪的食谱",
   ogDescriptionNoContext: "一道可在 Hearth Atlas 上烹饪的食谱",
+  alcoholWarning: "过量饮酒有害健康，请适量饮用。",
 };
 
 const ar: Chrome = {
@@ -262,6 +271,7 @@ const ar: Chrome = {
   recipeFallback: "وصفة",
   ogDescription: "{context} — وصفة لطهيها على Hearth Atlas",
   ogDescriptionNoContext: "وصفة لطهيها على Hearth Atlas",
+  alcoholWarning: "الإفراط في شرب الكحول خطر على الصحة. يُنصح بالاعتدال.",
 };
 
 const hi: Chrome = {
@@ -287,6 +297,7 @@ const hi: Chrome = {
   recipeFallback: "रेसिपी",
   ogDescription: "{context} — Hearth Atlas पर पकाने के लिए एक रेसिपी",
   ogDescriptionNoContext: "Hearth Atlas पर पकाने के लिए एक रेसिपी",
+  alcoholWarning: "शराब का अधिक सेवन सेहत के लिए खतरनाक है। संयम से पिएँ।",
 };
 
 const ja: Chrome = {
@@ -312,6 +323,7 @@ const ja: Chrome = {
   recipeFallback: "レシピ",
   ogDescription: "{context} — Hearth Atlas で作れるレシピ",
   ogDescriptionNoContext: "Hearth Atlas で作れるレシピ",
+  alcoholWarning: "お酒の飲み過ぎは健康を損なうおそれがあります。適量を守りましょう。",
 };
 
 const ru: Chrome = {
@@ -337,6 +349,7 @@ const ru: Chrome = {
   recipeFallback: "Рецепт",
   ogDescription: "{context} — рецепт для приготовления в Hearth Atlas",
   ogDescriptionNoContext: "Рецепт для приготовления в Hearth Atlas",
+  alcoholWarning: "Чрезмерное употребление алкоголя вредит здоровью. Пей умеренно.",
 };
 
 const ko: Chrome = {
@@ -362,6 +375,7 @@ const ko: Chrome = {
   recipeFallback: "레시피",
   ogDescription: "{context} — Hearth Atlas에서 요리할 수 있는 레시피",
   ogDescriptionNoContext: "Hearth Atlas에서 요리할 수 있는 레시피",
+  alcoholWarning: "지나친 음주는 건강에 해롭습니다. 적당히 마시세요.",
 };
 
 const nl: Chrome = {
@@ -387,6 +401,7 @@ const nl: Chrome = {
   recipeFallback: "Recept",
   ogDescription: "{context} — een recept om te koken op Hearth Atlas",
   ogDescriptionNoContext: "Een recept om te koken op Hearth Atlas",
+  alcoholWarning: "Overmatig alcoholgebruik is schadelijk voor de gezondheid. Drink met mate.",
 };
 
 const tr: Chrome = {
@@ -412,6 +427,7 @@ const tr: Chrome = {
   recipeFallback: "Tarif",
   ogDescription: "{context} — Hearth Atlas'ta pişirilecek bir tarif",
   ogDescriptionNoContext: "Hearth Atlas'ta pişirilecek bir tarif",
+  alcoholWarning: "Aşırı alkol tüketimi sağlığa zararlıdır. Ölçülü tüket.",
 };
 
 const id: Chrome = {
@@ -437,6 +453,7 @@ const id: Chrome = {
   recipeFallback: "Resep",
   ogDescription: "{context} — resep untuk dimasak di Hearth Atlas",
   ogDescriptionNoContext: "Resep untuk dimasak di Hearth Atlas",
+  alcoholWarning: "Konsumsi alkohol berlebihan berbahaya bagi kesehatan. Minumlah secukupnya.",
 };
 
 const pl: Chrome = {
@@ -462,6 +479,7 @@ const pl: Chrome = {
   recipeFallback: "Przepis",
   ogDescription: "{context} — przepis do ugotowania w Hearth Atlas",
   ogDescriptionNoContext: "Przepis do ugotowania w Hearth Atlas",
+  alcoholWarning: "Nadużywanie alkoholu szkodzi zdrowiu. Pij z umiarem.",
 };
 
 // All 16 content languages are covered — every code in CONTENT_LANGS has an entry

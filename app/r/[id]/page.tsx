@@ -284,6 +284,10 @@ function RecipeBlock({
               <PairingCard key={i} pairing={p} chrome={chrome} />
             ))}
           </div>
+          {/* ACC-3 — health message, word for word as in the app (always under the pairings). */}
+          <p className="text-[13px] italic leading-relaxed text-[#5C544E]">
+            {chrome.alcoholWarning}
+          </p>
         </Card>
       )}
     </article>
