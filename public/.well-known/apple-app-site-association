@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["VJ6P279FJX.com.hearthatlas.app"],
+        "components": [
+          { "/": "/r/*" }
+        ]
+      }
+    ]
+  }
+}

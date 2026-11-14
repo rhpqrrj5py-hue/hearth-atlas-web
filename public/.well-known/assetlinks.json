@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.hearthatlas.app",
+      "sha256_cert_fingerprints": [
+        "34:00:BF:4D:B3:B5:5D:8C:5C:09:16:4E:58:A8:95:9B:8D:8C:CD:84:D9:DA:1E:1A:1B:BC:B1:6A:0D:74:19:A5"
+      ]
+    }
+  }
+]
